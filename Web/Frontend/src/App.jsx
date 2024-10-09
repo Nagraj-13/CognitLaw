@@ -9,7 +9,7 @@ function App() {
   return (
     <>
       <h2 className='text-xl font-bold w-[100%] bg-slate-400 flex justify-center'>Hey this is Khushi</h2>
-      <h3 className='text-'>CognitLaw</h3>
+      <h3 className='text-blue-950'>CognitLaw</h3>
     </>
   )
 }
