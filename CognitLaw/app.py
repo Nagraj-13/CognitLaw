@@ -11,14 +11,17 @@ from neo4j import GraphDatabase
 import json
 import os
 import logging
-# Initialize logging
+
 setup_logging()
 
 # Initialize Flask app
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
+
+BASE_DIR = './Database'
 create_directories()
+
 
 # Async function for case processing pipeline
 async def process_case(conversation_data, file_id):
@@ -90,6 +93,60 @@ async def process_audio():
     except Exception as e:
         logging.error(f"Unexpected error processing audio for file_id {file_id}: {e}")
         return jsonify({"error": "Internal Server Error"}), 500
+
+
+@app.route('/get_data/<file_id>', methods=['GET'])
+def get_data(file_id):
+    try:
+        # Define the directories and corresponding filenames
+        file_mapping = {
+            "Case Analysis": f"conversation_analysis_{file_id}.json",
+            "Cases": f"case_details_{file_id}.json",
+            "Classified Content": f"classified_case_details_{file_id}.json"
+        }
+
+        aggregated_data = {}
+
+        for directory, filename in file_mapping.items():
+            file_path = os.path.join(BASE_DIR, directory, filename)
+
+            if os.path.exists(file_path):
+                with open(file_path, 'r') as file:
+                    aggregated_data[directory] = json.load(file)
+            else:
+                # aggregated_data[directory] = f"File {filename} not found in {directory}"
+                return jsonify({"error": f"File {filename} not found in {directory}"}), 404
+
+        return jsonify(aggregated_data), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
+@app.route('/get_conversation/<file_id>', methods=['GET'])
+def get_conversation(file_id):
+    try:
+        # Define the directories and corresponding filenames
+        file_mapping = {
+            "Conversations": f"conversation_{file_id}.json",
+        }
+
+        aggregated_data = {}
+
+        for directory, filename in file_mapping.items():
+            file_path = os.path.join(BASE_DIR, directory, filename)
+
+            if os.path.exists(file_path):
+                with open(file_path, 'r') as file:
+                    aggregated_data[directory] = json.load(file)
+            else:
+                aggregated_data[directory] = f"File {filename} not found in {directory}"
+
+        return jsonify(aggregated_data), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/api/query', methods=['POST'])

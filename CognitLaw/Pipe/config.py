@@ -1,32 +1,34 @@
-import google.generativeai as genai
-from neo4j import GraphDatabase
-from groq import Groq
+import json
 from dotenv import load_dotenv
 import os
-from pyannote.audio.pipelines import SpeakerDiarization
-from collections import deque
 import logging
+from collections import deque
+from pyannote.audio.pipelines import SpeakerDiarization
+from groq import Groq
+from neo4j import GraphDatabase
+import google.generativeai as genai
+
 
 load_dotenv()
 
-# Load environment variables
 flask_port = int(os.getenv('FLASK_PORT', 5000))
 google_api_key = os.getenv('GOOGLE_API_KEY')
 model_name = os.getenv('MODEL_NAME')
-generation_config=os.getenv('GENERATION_CONFIG')
-system_instruction=os.getenv('SYSTEM_INSTRUCTION')
+generation_config_str = os.getenv('GENERATION_CONFIG')  
+generation_config = json.loads(generation_config_str)  
+system_instruction = os.getenv('SYSTEM_INSTRUCTION')
 NEO4J_URI = os.getenv('NEO4J_URI')
 NEO4J_USERNAME = os.getenv('NEO4J_USERNAME')
 NEO4J_PASSWORD = os.getenv('NEO4J_PASSWORD')
 NEO4J_DATABASE = os.getenv('NEO4J_DATABASE')
 auth_token = os.getenv('HF_TOKEN')
 chromedriver_path = os.getenv('CHROME_DRIVER_PATH')
-
+IK_API_KEY=os.getenv('IndianKanoonAPI')
 # Configure Google AI and Groq
 genai.configure(api_key=google_api_key)
 model = genai.GenerativeModel(
     model_name=model_name,
-    generation_config=generation_config,
+    generation_config=generation_config,  
     system_instruction=system_instruction,
 )
 chat_session = model.start_chat(history=[])
@@ -53,14 +55,13 @@ def setup_logging():
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
         handlers=[
-            logging.FileHandler(os.path.join(log_dir, "app.log")),  # Save logs to logs/app.log
-            logging.StreamHandler()  # Print logs to the console
+            logging.FileHandler(os.path.join(log_dir, "app.log")), 
+            logging.StreamHandler() 
         ]
     )
     logging.info("Logging setup complete.")
 
-# Call this to initialize logging
 setup_logging()
 
-# Example log usage:
+
 logging.info("Configuration and logging initialized successfully.")

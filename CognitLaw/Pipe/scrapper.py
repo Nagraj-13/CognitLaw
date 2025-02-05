@@ -8,43 +8,91 @@ from selenium.webdriver.chrome.options import Options
 from .helper import save_json_to_directory
 import threading
 from queue import Queue
-from .config import setup_logging
+from .config import setup_logging, IK_API_KEY
 import logging
 
 
 setup_logging()
 
 def get_case_details_for_keyword(keyword):
-    uri_header = "https://indiankanoon.org/search/?formInput="
-    uri_footer = "doctypes%3A+supremecourt+sortby%3Amostrecent"
-    case_prompt = '+'.join(keyword.split())
-    url = uri_header + case_prompt + uri_footer
-    headers = {"User-Agent": "Mozilla/5.0"}
+    """
+    Fetch case details using the Indian Kanoon API for the given keyword.
+    
+    :param api_token: str - API Token for authentication
+    :param keyword: str - Search keyword
+    :param page_num: int - Page number (default: 0)
+    :return: list - Formatted list of case details
+    """
+    url = "https://api.indiankanoon.org/search/"
+    headers = {
+        "Authorization": f"Token {IK_API_KEY}",
+        "Accept": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    payload = {
+        "formInput": keyword,
+        "pagenum": 0
+    }
     
     logging.info(f"Fetching case details for keyword: {keyword}")
     
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.post(url, headers=headers, data=payload)
         response.raise_for_status()
-        soup = BeautifulSoup(response.text, 'html.parser')
-        result_data = []
-        result_titles = soup.select('.result_title')[:3]
         
-        for element in result_titles:
-            anchor = element.find('a')
-            if anchor:
-                text = anchor.get_text(strip=True)
-                href = anchor['href']
-                href = href.replace('docfragment', 'doc').split('?')[0]
-                href = "https://indiankanoon.org" + href if href.startswith('/doc/') else href
-                result_data.append({'text': text, 'href': href, 'searchElements': "judgments"})
+        if response.status_code != 200:
+            logging.error(f"Failed to fetch documents. Status Code: {response.status_code}")
+            return []
+        
+        data = response.json()
+        result_data = []
+        
+        for doc in data.get("docs", [])[:4]:
+            result_data.append({
+                'text': f"{doc.get('title', 'Unknown Title')} on {doc.get('publishdate', 'Unknown Date')}",
+                'href': f"https://indiankanoon.org/doc/{doc.get('tid', '')}/",
+                'searchElements': "judgments"
+            })
         
         logging.info(f"Found {len(result_data)} case results for keyword: {keyword}")
         return result_data
     
     except Exception as e:
         logging.error(f"Error fetching case details for keyword '{keyword}': {e}")
-    return []
+        return []
+
+
+# def get_case_details_for_keyword(keyword):
+#     uri_header = "https://indiankanoon.org/search/?formInput="
+#     uri_footer = "doctypes%3A+supremecourt+sortby%3Amostrecent"
+#     case_prompt = '+'.join(keyword.split())
+#     url = uri_header + case_prompt + uri_footer
+#     headers = {"User-Agent": "Mozilla/5.0"}
+    
+#     logging.info(f"Fetching case details for keyword: {keyword}")
+    
+#     try:
+#         response = requests.get(url, headers=headers)
+#         response.raise_for_status()
+#         soup = BeautifulSoup(response.text, 'html.parser')
+#         result_data = []
+#         result_titles = soup.select('.result_title')[:3]
+        
+#         for element in result_titles:
+#             anchor = element.find('a')
+#             if anchor:
+#                 text = anchor.get_text(strip=True)
+#                 href = anchor['href']
+#                 href = href.replace('docfragment', 'doc').split('?')[0]
+#                 href = "https://indiankanoon.org" + href if href.startswith('/doc/') else href
+#                 result_data.append({'text': text, 'href': href, 'searchElements': "judgments"})
+        
+#         logging.info(f"Found {len(result_data)} case results for keyword: {keyword}")
+#         return result_data
+    
+#     except Exception as e:
+#         logging.error(f"Error fetching case details for keyword '{keyword}': {e}")
+#     return []
 
 def get_case_details(keywords, file_id):
     logging.info("Starting case detail fetching for multiple keywords.")
@@ -65,9 +113,12 @@ def classify_case_details_thread(keyword_data_queue, results_queue, lock, chrome
     service = Service(executable_path=chromedriver_path)
     driver = webdriver.Chrome(service=service, options=options)
     classification_mapping = {
-        "Fact": ["Facts", "Fact", "Background"],
+        "Fact": ["Facts","Fact", "Background"],
         "Issue": ["Issue", "Issues Raised"],
-        "Court's Reasoning": ["Court's Reasoning"],
+        "Court's Reasoning": ["Court's Reasoning", "CDiscource"],
+        "Respondent's Argument": ["Respondent's Argument", "RespArg"],
+        "Petitioner's Argument": ["Petitioner's Argument", "PetArg"],
+        "Precedent Analysis": ["Precedent", "Precedent Analysis"],
         "Conclusion": ["Conclusion", "Judgment"]
     }
 
