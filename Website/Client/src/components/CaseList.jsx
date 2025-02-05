@@ -3,9 +3,9 @@ import {Link} from "react-router-dom"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 
 const mockCases = [
-  { id: "1", title: "Smith vs. Johnson", date: "2023-05-15", status: "Active" },
+  { id: "1", title: "Santosh vs. Linqwan", date: "2023-05-15", status: "Active" },
   { id: "2", title: "Brown Estate Dispute", date: "2023-06-01", status: "Pending" },
-  { id: "3", title: "Green Corp Lawsuit", date: "2023-06-10", status: "Closed" },
+  { id: "3", title: "Black Corp Lawsuit", date: "2023-06-10", status: "Closed" },
 ]
 
 export default function CaseList() {
