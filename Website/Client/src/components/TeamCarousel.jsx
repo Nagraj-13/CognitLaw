@@ -8,28 +8,28 @@ import { Card, CardContent } from "@/components/ui/card"
 
 const teamMembers = [
   {
-    name: "Jane Doe",
-    role: "CEO & Co-founder",
+    name: "Khushi koppad",
+    role: "AI developer",
     image: "/placeholder.svg",
-    bio: "Jane has over 15 years of experience in legal tech and AI.",
+    bio: "khushi is a AIML student at jcer and experienced in legal tech and AI.",
   },
   {
-    name: "John Smith",
-    role: "CTO",
+    name: "Mudassir sanderwale",
+    role: "Software developer",
     image: "/placeholder.svg",
-    bio: "John is an AI expert with a background in computer science and law.",
+    bio: "Mudassir is an Software expert with a background in computer science and law.",
   },
   {
-    name: "Emily Brown",
+    name: "Nagraj Bhandare",
     role: "Head of Legal Research",
     image: "/placeholder.svg",
-    bio: "Emily brings 20 years of legal research experience to the team.",
+    bio: "Nagraj brings 4 years of legal research experience to the team.",
   },
   {
-    name: "Michael Johnson",
-    role: "Lead AI Developer",
+    name: "Jyotiba dure",
+    role: "junior AI Developer",
     image: "/placeholder.svg",
-    bio: "Michael specializes in natural language processing and machine learning.",
+    bio: "Jyotiba specializes in natural language processing and machine learning.",
   },
 ]
 
